@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { supabase, type PhotoRow } from '../lib/supabase'
+import { isSupabaseConfigured, supabase, type PhotoRow } from '../lib/supabase'
 
 type LoadState = 'loading' | 'ready' | 'error'
 
@@ -17,6 +17,7 @@ export default function Gallery({ roomId }: { roomId: string }) {
   const seen = useRef<Set<string>>(new Set())
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return // nothing to fetch/subscribe to yet
     let cancelled = false
     seen.current = new Set()
 
@@ -67,6 +68,18 @@ export default function Gallery({ roomId }: { roomId: string }) {
   }, [roomId])
 
   // --- UI -------------------------------------------------------------------
+  if (!isSupabaseConfigured) {
+    return (
+      <CenteredMessage>
+        <p className="font-serif text-2xl text-gold">Almost there</p>
+        <p className="text-sm text-gold-300/60">
+          Add your Supabase URL and anon key to <code>.env.local</code>, then
+          restart the dev server to enable uploads and the live gallery.
+        </p>
+      </CenteredMessage>
+    )
+  }
+
   if (state === 'loading') {
     return (
       <CenteredMessage>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { applyVintageFilter, canvasToJpeg } from '../utils/filter'
 import { uploadPhoto } from '../utils/upload'
+import { isSupabaseConfigured } from '../lib/supabase'
 import { consumeShot, getGuestId, getRemaining, PHOTO_LIMIT } from '../lib/session'
 
 type Status = 'idle' | 'starting' | 'ready' | 'denied' | 'error'
@@ -60,6 +61,10 @@ export default function Camera({ roomId }: { roomId: string }) {
     const video = videoRef.current
     if (!video || busy || empty || status !== 'ready') return
     if (!video.videoWidth) return // stream not warmed up yet
+    if (!isSupabaseConfigured) {
+      setErrorMsg('Supabase isn’t configured — add your keys to .env.local to save photos.')
+      return
+    }
 
     setBusy(true)
     setFlash(true)
