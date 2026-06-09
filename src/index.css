@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-navy text-gold-300 antialiased;
+    /* Prevent rubber-banding / overscroll bounce on iOS Safari.
+       pan-y still allows the gallery to scroll vertically. */
+    touch-action: pan-y;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Use dynamic viewport height so the iOS Safari toolbar doesn't crop the UI */
+  .h-dvh {
+    height: 100vh;
+    height: 100dvh;
+  }
+}
+
+@layer utilities {
+  /* film-grain texture overlay used by the camera viewfinder */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.08;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
