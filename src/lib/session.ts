@@ -37,3 +37,28 @@ export function consumeShot(roomId: string): number {
 }
 
 export const PHOTO_LIMIT = MAX_PHOTOS
+
+// --- Film preset preference -------------------------------------------------
+// The guest's last-chosen film look, remembered across visits/rooms. Stored as
+// an opaque string id; filter.ts resolves/validates it. localStorage access is
+// wrapped so a private-mode quota error never breaks the camera.
+
+const PRESET_KEY = 'film_preset'
+
+/** The last film preset id this device chose, or null if never set. */
+export function getSavedPreset(): string | null {
+  try {
+    return localStorage.getItem(PRESET_KEY)
+  } catch {
+    return null
+  }
+}
+
+/** Persist the chosen film preset id for next time. */
+export function savePreset(id: string): void {
+  try {
+    localStorage.setItem(PRESET_KEY, id)
+  } catch {
+    /* private mode / quota — non-fatal, just won't persist */
+  }
+}
