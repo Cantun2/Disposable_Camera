@@ -104,11 +104,15 @@ end $$;
 -- 3. Row Level Security for photos
 alter table public.photos enable row level security;
 
--- Anyone may read the roll (the gallery is public).
+-- Anyone may read the roll (the gallery is public). `to public` covers BOTH
+-- anonymous guests AND the signed-in operator (role `authenticated`) — a policy
+-- scoped `to anon` would silently hide every photo from the logged-in admin
+-- (and block its realtime feed), since `authenticated` is a different role.
 drop policy if exists "anon can read photos" on public.photos;
-create policy "anon can read photos"
+drop policy if exists "anyone can read photos" on public.photos;
+create policy "anyone can read photos"
   on public.photos for select
-  to anon
+  to public
   using (true);
 
 -- Anon may insert a photo ONLY when room_id points at an EXISTING, ACTIVE event.
