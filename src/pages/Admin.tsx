@@ -340,7 +340,7 @@ function EventCard({
               {event.is_active ? 'Archive' : 'Unarchive'}
             </CardButton>
             <CardButton onClick={() => setModerating((v) => !v)}>
-              {moderating ? 'Hide photos' : 'Moderate'}
+              {moderating ? 'Hide photos' : 'Delete photos'}
             </CardButton>
             <button
               onClick={remove}
