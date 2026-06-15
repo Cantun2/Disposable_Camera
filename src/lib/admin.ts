@@ -1,32 +1,49 @@
-// Soft passcode gate for the /admin console.
+// Real admin authentication for the /admin console, backed by Supabase Auth.
 //
-// SECURITY NOTE: this is a Vite client app, so VITE_* values are baked into the
-// public bundle — this passcode only keeps casual visitors out, it is NOT real
-// security. Anyone determined can read the bundle. For true protection, put the
-// admin behind Supabase Auth (email magic link) and gate event-creation with an
-// RLS policy restricted to authenticated users. Good enough for "runs on my
-// computer / hand the link to a client" MVP usage.
+// The old VITE_ADMIN_PASSCODE was baked into the public bundle, so it was never
+// real security. The console is now gated on a genuine auth SESSION: operators
+// sign in with email + password (or a magic link), and RLS in schema.sql only
+// grants event create/edit/delete + photo moderation to the `authenticated`
+// role. A guest with the public anon key can do none of that.
+//
+// These are thin helpers around supabase.auth; the gate itself (Admin.tsx)
+// reacts to the real session.
 
-const PASSCODE = (import.meta.env.VITE_ADMIN_PASSCODE as string) || ''
-const KEY = 'admin_unlocked'
+import type { Session } from '@supabase/supabase-js'
+import { supabase } from './supabase'
 
-/** When no passcode is configured the console is open (local-only convenience). */
-export const requiresPasscode = PASSCODE.length > 0
-
-export function isAdminUnlocked(): boolean {
-  if (!requiresPasscode) return true
-  return localStorage.getItem(KEY) === '1'
+/** Current operator session, or null when signed out. */
+export async function getAdminSession(): Promise<Session | null> {
+  const { data } = await supabase.auth.getSession()
+  return data.session
 }
 
-/** Returns true on success. */
-export function unlockAdmin(code: string): boolean {
-  if (code === PASSCODE) {
-    localStorage.setItem(KEY, '1')
-    return true
-  }
-  return false
+/** Subscribe to sign-in / sign-out. Returns an unsubscribe function. */
+export function onAdminAuthChange(cb: (session: Session | null) => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => cb(session))
+  return () => data.subscription.unsubscribe()
 }
 
-export function lockAdmin(): void {
-  localStorage.removeItem(KEY)
+/** Sign in with email + password. Throws on bad credentials. */
+export async function signInWithPassword(email: string, password: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password,
+  })
+  if (error) throw error
+}
+
+/** Send a passwordless magic-link to the operator's email (requires email
+ *  delivery to be configured in the Supabase dashboard). */
+export async function signInWithMagicLink(email: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email: email.trim(),
+    options: { emailRedirectTo: `${window.location.origin}/admin` },
+  })
+  if (error) throw error
+}
+
+/** End the operator session. */
+export async function signOutAdmin(): Promise<void> {
+  await supabase.auth.signOut()
 }
