@@ -15,14 +15,15 @@ if (!isSupabaseConfigured) {
 
 export const BUCKET = (import.meta.env.VITE_SUPABASE_BUCKET as string) || 'photos'
 
-// We don't use Supabase Auth (zero-login product), so disable session persistence.
-// Fall back to harmless placeholders when unconfigured so createClient doesn't
-// throw at import time and white-screen the whole app — the UI gates real calls
-// on `isSupabaseConfigured`.
+// Guests stay anonymous, but the /admin console now uses real Supabase Auth, so
+// we persist + auto-refresh the operator's session (guest pages simply never
+// have one). Fall back to harmless placeholders when unconfigured so
+// createClient doesn't throw at import time and white-screen the whole app —
+// the UI gates real calls on `isSupabaseConfigured`.
 export const supabase = createClient(
   url || 'http://localhost:54321',
   anonKey || 'public-anon-key',
-  { auth: { persistSession: false } },
+  { auth: { persistSession: true, autoRefreshToken: true } },
 )
 
 export type PhotoRow = {
