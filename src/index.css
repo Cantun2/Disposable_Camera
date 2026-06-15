@@ -1,6 +1,43 @@
+/* Fonts are bundled via @fontsource (self-hosted), so they are precached by the
+   service worker and work fully offline once the app shell is cached. */
+@import '@fontsource/cormorant-garamond/400.css';
+@import '@fontsource/cormorant-garamond/500.css';
+@import '@fontsource/cormorant-garamond/600.css';
+@import '@fontsource/cormorant-garamond/700.css';
+@import '@fontsource-variable/inter/wght.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ============================================================================
+   DESIGN SYSTEM — shared utilities for ALL agents (camera / gallery / admin)
+   ----------------------------------------------------------------------------
+   Palette (tailwind.config.js): bg `navy` (#0b1020), text `gold-300` (#f0d77f),
+   accent `gold` (#d4af37). Fonts: `font-serif` (Cormorant Garamond, display)
+   and `font-sans` (Inter, body — the default). Tokens you can reuse directly:
+     • shadows : shadow-gold / shadow-gold-sm / shadow-card / shadow-inner-gold
+     • gradients (bg-*) : gold-gradient, gold-sheen, navy-radial
+     • radius : rounded-2xl/3xl/4xl
+     • motion : animate-fade-in / fade-in-up / shimmer / toast-in
+
+   Reusable component classes defined below (use them, don't reinvent):
+     • .btn-gold     — primary CTA: gold gradient pill, press feedback, glow.
+     • .btn-ghost    — secondary: gold hairline outline on transparent.
+     • .icon-btn     — round translucent button for an icon (e.g. shutter chrome).
+     • .card         — elevated navy panel (border + soft shadow + radius).
+     • .surface      — flat translucent navy panel (e.g. bottom sheet / bars).
+     • .input-field  — text input styled to match the palette.
+     • .skeleton     — shimmering placeholder block while content loads.
+     • .toast        — floating status pill; pair with .animate-toast-in.
+     • .hairline     — thin gold divider rule.
+     • .badge        — small gold-outlined count/status chip.
+     • .page         — full-height navy-radial page wrapper with fade-in.
+     • .page-fade    — apply just the entrance fade to any element.
+
+   Safe-area helpers (notch / home-indicator): .pt-safe .pb-safe .px-safe
+   and combined .inset-safe. Existing helpers kept: .h-dvh, .grain.
+   ========================================================================== */
 
 @layer base {
   html,
@@ -9,15 +46,56 @@
     height: 100%;
   }
 
+  html {
+    /* Belt-and-suspenders against iOS rubber-banding at the document level. */
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-navy text-gold-300 antialiased;
+    @apply bg-navy font-sans text-gold-300 antialiased;
     /* Prevent rubber-banding / overscroll bounce on iOS Safari.
        pan-y still allows the gallery to scroll vertically. */
     touch-action: pan-y;
     overscroll-behavior: none;
     -webkit-user-select: none;
     user-select: none;
+    /* Kill the grey long-press flash + the iOS "save image / copy" callout. */
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  /* Headings default to the display serif. */
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  /* Text the user genuinely needs to select/edit opts back in. */
+  input,
+  textarea,
+  [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  /* Honour reduced-motion preferences. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* Gold selection highlight, on the rare selectable text. */
+  ::selection {
+    background: rgba(212, 175, 55, 0.3);
+    color: #f7e7ad;
   }
 
   /* Use dynamic viewport height so the iOS Safari toolbar doesn't crop the UI */
@@ -27,7 +105,115 @@
   }
 }
 
+@layer components {
+  /* --- Buttons ------------------------------------------------------------ */
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+      bg-gold-gradient px-6 py-3 font-sans font-semibold tracking-wide
+      text-navy-900 shadow-gold transition-all duration-200
+      active:scale-[0.97] active:shadow-gold-sm
+      disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full
+      border border-gold/40 bg-transparent px-6 py-3 font-sans font-medium
+      tracking-wide text-gold-300 transition-all duration-200
+      hover:border-gold/70 hover:text-gold active:scale-[0.97]
+      disabled:pointer-events-none disabled:opacity-40;
+  }
+
+  .icon-btn {
+    @apply inline-flex items-center justify-center rounded-full
+      border border-gold/20 bg-navy-800/70 text-gold-300 backdrop-blur
+      transition-all duration-200 active:scale-90;
+  }
+
+  /* --- Surfaces ----------------------------------------------------------- */
+  .card {
+    @apply rounded-3xl border border-gold/15 bg-navy-800/80 p-5
+      shadow-card backdrop-blur;
+  }
+
+  .surface {
+    @apply border border-gold/10 bg-navy/80 backdrop-blur;
+  }
+
+  /* --- Forms -------------------------------------------------------------- */
+  .input-field {
+    @apply w-full rounded-2xl border border-gold/20 bg-navy-900/60 px-4 py-3
+      font-sans text-gold-200 placeholder-gold-300/30 outline-none
+      transition-colors duration-200
+      focus:border-gold/60 focus:ring-2 focus:ring-gold/25;
+  }
+
+  /* --- Loading skeleton (shimmer) ---------------------------------------- */
+  .skeleton {
+    @apply relative overflow-hidden rounded-2xl bg-navy-700/60;
+    background-image: linear-gradient(
+      100deg,
+      rgba(240, 215, 127, 0) 30%,
+      rgba(240, 215, 127, 0.12) 50%,
+      rgba(240, 215, 127, 0) 70%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* --- Toast / status pill ------------------------------------------------ */
+  .toast {
+    @apply pointer-events-none flex items-center gap-2 rounded-full
+      border border-gold/25 bg-navy-800/90 px-4 py-2.5 font-sans text-sm
+      text-gold-200 shadow-card backdrop-blur;
+  }
+
+  /* --- Misc primitives ---------------------------------------------------- */
+  .hairline {
+    @apply h-px w-full border-0 bg-gradient-to-r from-transparent
+      via-gold/30 to-transparent;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full border border-gold/30
+      bg-navy-800/70 px-3 py-1 font-sans text-xs font-medium tracking-wide
+      text-gold-300;
+  }
+
+  /* Full page wrapper: navy vignette + safe insets + entrance fade. */
+  .page {
+    @apply h-dvh w-full overflow-y-auto bg-navy-radial animate-fade-in;
+  }
+}
+
 @layer utilities {
+  /* Page-entrance fade you can drop onto any element. */
+  .page-fade {
+    @apply animate-fade-in;
+  }
+
+  /* Safe-area insets (notch + home indicator). Combine as needed. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .inset-safe {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Gold gradient applied to text (e.g. event titles). */
+  .text-gold-gradient {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+
   /* film-grain texture overlay used by the camera viewfinder */
   .grain::after {
     content: '';
