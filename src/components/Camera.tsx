@@ -6,12 +6,20 @@ import { consumeShot, getGuestId, getRemaining, PHOTO_LIMIT } from '../lib/sessi
 
 type Status = 'idle' | 'starting' | 'ready' | 'denied' | 'error'
 
-export default function Camera({ roomId }: { roomId: string }) {
+export default function Camera({
+  roomId,
+  title,
+  limit = PHOTO_LIMIT,
+}: {
+  roomId: string
+  title?: string
+  limit?: number
+}) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
   const [status, setStatus] = useState<Status>('idle')
-  const [remaining, setRemaining] = useState(() => getRemaining(roomId))
+  const [remaining, setRemaining] = useState(() => getRemaining(roomId, limit))
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -139,10 +147,10 @@ export default function Camera({ roomId }: { roomId: string }) {
       {/* Top bar: counter */}
       <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+1rem)]">
         <span className="font-serif text-lg tracking-wide text-gold-300/90">
-          {roomId.replace(/-/g, ' ')}
+          {title ?? roomId.replace(/-/g, ' ')}
         </span>
         <span className="rounded-full bg-black/40 px-3 py-1 text-sm font-medium text-gold backdrop-blur">
-          {remaining} / {PHOTO_LIMIT} left
+          {remaining} / {limit} left
         </span>
       </div>
 

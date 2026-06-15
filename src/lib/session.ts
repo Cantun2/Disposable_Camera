@@ -20,12 +20,13 @@ export function getGuestId(): string {
 
 const budgetKey = (roomId: string) => `room:${roomId}:remaining`
 
-/** How many shots this guest has left in this room (defaults to MAX_PHOTOS). */
-export function getRemaining(roomId: string): number {
+/** How many shots this guest has left in this room. On first visit the budget
+ *  is seeded with `limit` (the event's per-guest limit, default MAX_PHOTOS). */
+export function getRemaining(roomId: string, limit: number = MAX_PHOTOS): number {
   const raw = localStorage.getItem(budgetKey(roomId))
-  if (raw === null) return MAX_PHOTOS
+  if (raw === null) return limit
   const n = parseInt(raw, 10)
-  return Number.isFinite(n) ? Math.max(0, n) : MAX_PHOTOS
+  return Number.isFinite(n) ? Math.max(0, n) : limit
 }
 
 /** Decrement and persist the remaining budget; returns the new value. */

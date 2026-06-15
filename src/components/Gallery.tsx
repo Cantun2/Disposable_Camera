@@ -7,7 +7,7 @@ type LoadState = 'loading' | 'ready' | 'error'
 //  1. Fetch the existing roll once (newest first).
 //  2. Subscribe to Postgres INSERTs scoped to this room_id and prepend them
 //     as guests around the venue keep shooting — no polling, no refresh.
-export default function Gallery({ roomId }: { roomId: string }) {
+export default function Gallery({ roomId, title }: { roomId: string; title?: string }) {
   const [photos, setPhotos] = useState<PhotoRow[]>([])
   const [state, setState] = useState<LoadState>('loading')
   const [active, setActive] = useState<PhotoRow | null>(null) // lightbox
@@ -113,7 +113,7 @@ export default function Gallery({ roomId }: { roomId: string }) {
       {/* Header */}
       <header className="sticky top-0 z-10 bg-navy/80 px-5 pb-3 pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur">
         <h1 className="font-serif text-2xl tracking-wide text-gold">
-          {roomId.replace(/-/g, ' ')}
+          {title ?? roomId.replace(/-/g, ' ')}
         </h1>
         <p className="text-xs uppercase tracking-[0.2em] text-gold-300/50">
           {photos.length} {photos.length === 1 ? 'photo' : 'photos'} · live
