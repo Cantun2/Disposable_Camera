@@ -4,3 +4,6 @@ dist
 .env.local
 *.local
 .DS_Store
+
+# Per-agent task briefs (parallel worktree workflow) — not part of any branch
+TASK.md
