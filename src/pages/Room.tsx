@@ -30,7 +30,9 @@ export default function Room() {
       try {
         const ev = await getEventBySlug(roomId)
         if (cancelled) return
-        if (!ev) {
+        // Anon RLS already hides archived events, but guard here too so a
+        // disabled event always behaves as "not active" on the guest side.
+        if (!ev || !ev.is_active) {
           setState('invalid')
           return
         }

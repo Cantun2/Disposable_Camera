@@ -2,8 +2,9 @@ import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Room from './pages/Room'
 
-// Admin console is operator-only, so lazy-load it — its QR-code dependency
-// stays out of the guest (camera/gallery) bundle.
+// Admin console is operator-only, so lazy-load it — its QR-code dependency and
+// auth/login screen stay out of the guest (camera/gallery) bundle. The console
+// itself gates on a real Supabase Auth session (see pages/Admin.tsx).
 const Admin = lazy(() => import('./pages/Admin'))
 
 export default function App() {
