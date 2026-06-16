@@ -98,9 +98,34 @@ npm run dev      # http://localhost:5173/admin  (operator console)
                  # http://localhost:5173/room/<slug>  (guest room)
 ```
 
-`getUserMedia` needs a **secure context**. `localhost` qualifies, but to test on
-a real phone over your LAN you need HTTPS — use a tunnel (`cloudflared` /
-`ngrok`) or add [`@vitejs/plugin-basic-ssl`](https://github.com/vitejs/vite-plugin-basic-ssl).
+### Test on a real phone
+
+`getUserMedia` (the camera) needs a **secure context**. `localhost` qualifies,
+but a plain `http://192.168.x.x:5173` LAN address does **not** — the phone will
+load the gallery but the camera stays black. You need HTTPS. The simplest way is
+a Cloudflare quick tunnel:
+
+```bash
+# 1. Start the dev server (it already binds to 0.0.0.0 via `host: true`)
+npm run dev
+
+# 2. In a second terminal, expose it over HTTPS
+cloudflared tunnel --url http://localhost:5173
+```
+
+`cloudflared` prints a public `https://<random>.trycloudflare.com` URL — open
+that on the phone (e.g. `https://<random>.trycloudflare.com/room/<slug>`) and
+allow the camera permission. The URL is ephemeral: it changes each restart and
+lives only while both the dev server and the tunnel are running.
+
+- Install `cloudflared` if you don't have it: `brew install cloudflared`, or
+  download the binary from the
+  [releases page](https://github.com/cloudflare/cloudflared/releases/latest).
+- `vite.config.ts` already allows `*.trycloudflare.com`, `*.ngrok-free.app`, and
+  `*.ngrok.app` hosts — Vite blocks unknown `Host` headers otherwise.
+- Alternatives: `ngrok http 5173`, or add
+  [`@vitejs/plugin-basic-ssl`](https://github.com/vitejs/vite-plugin-basic-ssl)
+  for a self-signed local HTTPS cert (you'll have to accept the browser warning).
 
 ## 6. Test
 
