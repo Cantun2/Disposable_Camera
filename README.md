@@ -6,6 +6,8 @@ QR code, land straight in the event "room", shoot a limited roll with a live
 collaborative gallery fill up. An operator manages events from a password-gated
 **admin console**.
 
+FEEL FREE TO DISCUSS WITH ME. I am open to any suggestions or upgrades for the product. It is a little project but I have the idea to upgrade the photo filter to obtain a real vintage effect, with the colors balanced. 
+
 - **Frontend:** React + Vite + TypeScript (mobile-first, tiny bundle)
 - **Styling:** Tailwind CSS — dark by default, navy + gold
 - **Backend:** Supabase (Postgres + Realtime + Storage + **Auth**)
